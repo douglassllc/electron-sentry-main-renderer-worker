@@ -1,5 +1,13 @@
 # electron-sentry-main-renderer-worker
 
+This project demostrates our current working scenario with utilizing Sentry in an Electron application.  This application consist of:
+
+Main - main process (src/background.js)
+Renderer - primary renderer UI (src/main.js)
+Worker - seperate renderer UI utilized to process data off the main thread and provided a UI for monitoring status (src/worker.js). In our production application there are 1 or more Worker's
+
+Our current issues are covered below.
+
 ## Project setup
 ```
 npm install
@@ -7,18 +15,31 @@ npm install
 
 ### Compiles and hot-reloads for development
 ```
-npm run serve
+npm run electron:serve
 ```
 
-### Compiles and minifies for production
+## Sentry Issue 1
+
+Select "Create Renderer Error" in the Window titled "Renderer".  This will produce the following output on the console.
+
 ```
-npm run build
+from sentry.js ...
 ```
 
-### Lints and fixes files
+This is coming from the `beforeSend()` function definition in `src/sentry.js`.  However, our expectation would be that the `beforeSend()` in `src\preload.js` should be called.
+
+## Sentry Issue 2
+
+Selectig "Create Worker Error" in the Window titled "Worker" cause the same as Issue 1.  The expectation would be that the `beforeSend() in `src\preload.js` should be called.
+
 ```
-npm run lint
+Module [worker:worker]. Event ID [8ec0c1232251403092f1e87d87f92f3d]. Exception: TypeError: _vm.myUndefinedFunction is not a function
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Sentry Issue 3
+
+Select "Crash Worker" in the Window titled "Worker" shows the `module` tag set to `renderer`.  However, in our previous test for Issue 2.  The `module` tag was set correctly to `worker:worker` as expected.
+
+```
+Module [renderer]. Event ID [1912563dfbe24c0c925260953f1d0ea4]. Exception: Unknown
+```
